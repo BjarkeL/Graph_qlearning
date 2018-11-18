@@ -78,6 +78,20 @@ void State::updateAllStates() {
     }
 }
 
+void State::updateSingleState(int a) {
+    bool present = false;
+    if (actions[a].q_vector.empty())
+        present = false;
+    else {
+        for (const auto& q : actions[a].q_vector) {
+            if (*graphState == q.first)
+                present = true;
+        }
+    }
+    if (!present)
+        actions[a].q_vector.push_back(std::make_pair(*graphState, 0));
+}
+
 bool State::allVisited() {
     for (const auto& s : *graphState) {
         if (!s)
@@ -138,7 +152,7 @@ Qlearning::~Qlearning() {}
 void Qlearning::run() {
     //Set up the graph:
     Graph allStates;
-    for (int i = 0; i < 7; i++) {
+    for (int i = 0; i < 13; i++) {
         allStates.addState(new State(i));
     }
 
@@ -146,16 +160,27 @@ void Qlearning::run() {
     allStates.addConnection(allStates_v[0], allStates_v[1], -1);
     allStates.addConnection(allStates_v[0], allStates_v[2], -1);
     allStates.addConnection(allStates_v[2], allStates_v[3], -1);
-    allStates.addConnection(allStates_v[3], allStates_v[4], -10);
+    allStates.addConnection(allStates_v[3], allStates_v[4], -1);
     allStates.addConnection(allStates_v[3], allStates_v[5], -1);
     allStates.addConnection(allStates_v[4], allStates_v[5], -1);
     allStates.addConnection(allStates_v[5], allStates_v[6], -1);
-
+    allStates.addConnection(allStates_v[1], allStates_v[7], -1);
+    
+    allStates.addConnection(allStates_v[1], allStates_v[8], -1);
+    allStates.addConnection(allStates_v[8], allStates_v[10], -1);
+    allStates.addConnection(allStates_v[8], allStates_v[9], -1);
+    allStates.addConnection(allStates_v[9], allStates_v[10], -1);
+    allStates.addConnection(allStates_v[9], allStates_v[11], -1);
+    allStates.addConnection(allStates_v[7], allStates_v[11], -1);
+    allStates.addConnection(allStates_v[11], allStates_v[12], -1);
+    allStates.addConnection(allStates_v[12], allStates_v[0], -1);
 
     std::ofstream details;
     details.open("details.txt");
 
-    for (int i = 0; i < 500; i++) {
+    for (int i = 0; i < 1000; i++) {
+        if (i == 950)
+            randomOn = false;
         details << "Run: " << i+1 << "\n";
         //Set initial state:
         State* current_state = allStates_v[0];
@@ -163,40 +188,41 @@ void Qlearning::run() {
         while(!allStates.allVisited()) {
             //Set the current state to visited.
             current_state->setVisited();
-            
-            //Update the list of states for each action possible from current state.
-            current_state->updateAllStates();
 
             //Write the current state number to file.
             details << current_state->getStateNum() << " -> ";
+
             //Get the next action to do.
             int next_a = getAction(current_state);
+
+            //Update the states in the following action to include the current state.
+            current_state->updateSingleState(next_a);
+
             //Calculate the q-value for being in the current state and taken the given action.
             calcQval(current_state, next_a);
 
             //Set the current state to be the next state.
             current_state = getNextState(current_state, next_a);
         }
-        if (i == 400)
-            randomOn = false;
         details << "\n";
         //Clear visited:
         allStates.clearVisited();
     }
     printQvals(details, allStates);
-    
     details.close();
 }
 
 void Qlearning::printQvals(std::ofstream& f, Graph& g) {
+    int total_q_vals = 0;
     f << "\n";
     for (const auto& s : g.getAllStates()) {
         f << "State: " << s->getStateNum() << "\n";
         for (int i = 0; i < s->nOfActions(); i++) {
             f << s->getAction(i).q_vector.size() << "\n";
+            total_q_vals += s->getAction(i).q_vector.size();
         }
     }
-    f << "\n";
+    f << "\nTotal q values: " << total_q_vals << "\n\n";
     for (const auto& s : g.getAllStates()) {
         f << "State: " << s->getStateNum() << "\n";
         for (int i = 0; i < s->nOfActions(); i++) {
@@ -257,10 +283,11 @@ State* Qlearning::getNextState(State* s, int a) {
 float Qlearning::getReward(State* s, int a) {
     if (s->allVisited())
         return s->getAction(a).reward + 100;
-    if (getNextState(s, a)->isVisited())
-        return s->getAction(a).reward - 1;
-    else
-        return s->getAction(a).reward +2;
+    return s->getAction(a).reward;
+    //if (getNextState(s, a)->isVisited())
+    //    return s->getAction(a).reward - 10;
+    //else
+    //    return s->getAction(a).reward;
 }
 
 void Qlearning::calcQval(State* s, int a) {

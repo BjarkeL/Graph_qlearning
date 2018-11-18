@@ -29,7 +29,8 @@ public:
     bool isVisited();
     int getStateNum();
     void setFullSindex(int si, std::vector<int>* fullState);
-    void updateAllStates();
+    void updateAllStates(); //Deprecated. It is really only necessary to update the single action with new states rather than all.
+    void updateSingleState(int a);
     bool allVisited();
 
 private:
