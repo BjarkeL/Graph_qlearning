@@ -2,6 +2,7 @@
 #include <random>
 #include <fstream>
 #include <iostream>
+#include <time.h>
 
 /*** States ***/
 
@@ -152,45 +153,57 @@ Qlearning::~Qlearning() {}
 void Qlearning::run() {
     //Set up the graph:
     Graph allStates;
-    for (int i = 0; i < 13; i++) {
+    for (int i = 0; i < 10; i++) {
         allStates.addState(new State(i));
     }
 
     std::vector<State*> allStates_v = allStates.getAllStates();
     allStates.addConnection(allStates_v[0], allStates_v[1], -1);
-    allStates.addConnection(allStates_v[0], allStates_v[2], -1);
+    allStates.addConnection(allStates_v[1], allStates_v[2], -1);
     allStates.addConnection(allStates_v[2], allStates_v[3], -1);
-    allStates.addConnection(allStates_v[3], allStates_v[4], -1);
-    allStates.addConnection(allStates_v[3], allStates_v[5], -1);
+    allStates.addConnection(allStates_v[0], allStates_v[4], -1);
     allStates.addConnection(allStates_v[4], allStates_v[5], -1);
-    allStates.addConnection(allStates_v[5], allStates_v[6], -1);
-    allStates.addConnection(allStates_v[1], allStates_v[7], -1);
-    
-    allStates.addConnection(allStates_v[1], allStates_v[8], -1);
-    allStates.addConnection(allStates_v[8], allStates_v[10], -1);
-    allStates.addConnection(allStates_v[8], allStates_v[9], -1);
-    allStates.addConnection(allStates_v[9], allStates_v[10], -1);
-    allStates.addConnection(allStates_v[9], allStates_v[11], -1);
-    allStates.addConnection(allStates_v[7], allStates_v[11], -1);
-    allStates.addConnection(allStates_v[11], allStates_v[12], -1);
-    allStates.addConnection(allStates_v[12], allStates_v[0], -1);
+    allStates.addConnection(allStates_v[4], allStates_v[6], -1);
+    allStates.addConnection(allStates_v[6], allStates_v[7], -1);
+    allStates.addConnection(allStates_v[7], allStates_v[8], -1);
+    allStates.addConnection(allStates_v[6], allStates_v[9], -1);
 
     std::ofstream details;
     details.open("details.txt");
+    std::ofstream stats;
+    stats.open("stats.txt");
+    std::ofstream q_delta;
+    q_delta.open("q_delta.txt");
+    clock_t t1, t2;
+    t1 = clock();
+    int last_run_l = 0;
+    int total_runs = 5000;
 
-    for (int i = 0; i < 1000; i++) {
-        if (i == 950)
+    for (int i = 0; i < total_runs; i++) {
+        if (i == total_runs - 10)
             randomOn = false;
-        details << "Run: " << i+1 << "\n";
+        if (i == 0 || i > total_runs - 10)
+            details << "Run: " << i+1 << "\n";
         //Set initial state:
         State* current_state = allStates_v[0];
+
+        int run_length = 0;
+
         //For each episode:
         while(!allStates.allVisited()) {
+            //if (run_length > 50)
+            //    break;
+
             //Set the current state to visited.
             current_state->setVisited();
 
             //Write the current state number to file.
-            details << current_state->getStateNum() << " -> ";
+            if (i == 0 || i > total_runs - 10)
+                details << current_state->getStateNum() << " -> ";
+            if (i == total_runs - 1)
+                last_run_l++;
+
+            run_length++;
 
             //Get the next action to do.
             int next_a = getAction(current_state);
@@ -204,12 +217,26 @@ void Qlearning::run() {
             //Set the current state to be the next state.
             current_state = getNextState(current_state, next_a);
         }
-        details << "\n";
+        stats << run_length << std::endl;
+        float qd_sum = 0;
+        for (auto& qd : delta) {
+            qd_sum += abs(qd);
+        }
+        delta.clear();
+        q_delta << qd_sum / run_length << std::endl;
+
+        if (i == 0 || i > total_runs - 10)
+            details << "\n";
         //Clear visited:
         allStates.clearVisited();
     }
+    t2 = clock();
     printQvals(details, allStates);
+    details << "Length of the last run: " << last_run_l << "\n";
     details.close();
+    stats.close();
+    q_delta.close();
+    std::cout << "Running time: " << ((float)t2 - (float)t1) / CLOCKS_PER_SEC << " s." << std::endl;
 }
 
 void Qlearning::printQvals(std::ofstream& f, Graph& g) {
@@ -223,26 +250,27 @@ void Qlearning::printQvals(std::ofstream& f, Graph& g) {
         }
     }
     f << "\nTotal q values: " << total_q_vals << "\n\n";
-    for (const auto& s : g.getAllStates()) {
-        f << "State: " << s->getStateNum() << "\n";
-        for (int i = 0; i < s->nOfActions(); i++) {
-            f << "\nAction: " << i << "\n";
-            for (const auto& a : s->getAction(i).q_vector) {
-                f << "State: ";
-                for (int j = 0; j < a.first.size(); j++) {
-                    f << a.first[j];
-                }
-                f << " q: " << a.second << "\n";
-            }
-        }
-        f << "\n";
-    }
+    //Write out all q-values to file.
+    //for (const auto& s : g.getAllStates()) {
+    //    f << "State: " << s->getStateNum() << "\n";
+    //    for (int i = 0; i < s->nOfActions(); i++) {
+    //        f << "\nAction: " << i << "\n";
+    //        for (const auto& a : s->getAction(i).q_vector) {
+    //            f << "State: ";
+    //            for (int j = 0; j < a.first.size(); j++) {
+    //                f << a.first[j];
+    //            }
+    //            f << " q: " << a.second << "\n";
+    //        }
+    //    }
+    //    f << "\n";
+    //}
 }
 
 int Qlearning::getAction(State* s) {
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<> epsilon(1, 10);
+    std::uniform_int_distribution<> epsilon(1, 100);
     std::uniform_int_distribution<> explore(0, s->nOfActions()-1);
 
     if (epsilon(gen) == 5 && randomOn)
@@ -284,10 +312,6 @@ float Qlearning::getReward(State* s, int a) {
     if (s->allVisited())
         return s->getAction(a).reward + 100;
     return s->getAction(a).reward;
-    //if (getNextState(s, a)->isVisited())
-    //    return s->getAction(a).reward - 10;
-    //else
-    //    return s->getAction(a).reward;
 }
 
 void Qlearning::calcQval(State* s, int a) {
@@ -314,5 +338,6 @@ void Qlearning::calcQval(State* s, int a) {
 
     //Calculate the new q-value and insert it into the state/action pair:
     float q_val = current_q + ALPHA * ( reward + GAMMA * max_next_q - current_q );
+    delta.push_back(current_q - q_val);
     s->setQval(a, q_val);
 }

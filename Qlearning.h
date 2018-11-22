@@ -6,8 +6,8 @@
 #include <fstream>
 
 //Defines:
-#define ALPHA 0.5 //Step size / Learning rate
-#define GAMMA 0.9 //Discount
+#define ALPHA 0.2 //Step size / Learning rate
+#define GAMMA 0.75 //Discount
 
 struct action;
 
@@ -81,6 +81,7 @@ public:
 
 private:
     bool randomOn = true;
+    std::vector<float> delta;
 };
 
 #endif
