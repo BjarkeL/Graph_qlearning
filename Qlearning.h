@@ -16,7 +16,7 @@ class Graph;
 class State {
 public:
     State();
-    State(int stateNum);
+    State(int stateNum, int stateS);
     ~State();
 
     void addAction(State* next, float reward);
@@ -32,12 +32,17 @@ public:
     void updateAllStates(); //Deprecated. It is really only necessary to update the single action with new states rather than all.
     void updateSingleState(int a);
     bool allVisited();
+    int getStateSize();
+    bool getEmptyState();
+    void setEmptyState(bool e);
 
 private:
     std::vector<action> actions;
     int stateNumber;
     int fullStateIndex;
     std::vector<int>* graphState;
+    int stateSize;
+    bool empty = false;
 };
 
 struct action {
@@ -76,12 +81,16 @@ public:
     int getAction(State* s);
     int getMaxAction(State* s);
     State* getNextState(State* s, int a);
-    float getReward(State* s, int a);
+    float getReward(State* s, int a, int mean);
     void calcQval(State* s, int a);
 
 private:
     bool randomOn = true;
     std::vector<float> delta;
+    int ballsFound = 0;
+    int stepsTaken = 0;
+    bool terminated = false;
+    float totalReward;
 };
 
 #endif
