@@ -166,7 +166,7 @@ Qlearning::~Qlearning() {}
 void Qlearning::run() {
 
     //State sizes:
-    std::vector<int> sSize = {0, 0, 12, -10, 0, 15, 0, 0, 10, 10};
+    std::vector<int> sSize = {0, 0, 12, 0, 0, 15, 0, 0, 10, 10};
 
     //Set up the graph:
     Graph allStates;
@@ -194,7 +194,7 @@ void Qlearning::run() {
     clock_t t1, t2;
     t1 = clock();
     int last_run_l = 0;
-    int total_runs = 500;
+    int total_runs = 1000;
 
     for (int i = 0; i < total_runs; i++) {
         terminated = false;
@@ -350,14 +350,14 @@ float Qlearning::getReward(State* s, int a, int mean) {
         ballsFound += temp;
         if (ballsFound >= 30) {
             terminated = true;
-            //return temp + 10;
+            return temp + 10 + s->getAction(a).reward;
         }
-        return temp;
+        return temp + s->getAction(a).reward;
     }
     
     if (stepsTaken > 10) {
         terminated = true;
-        return -10;
+        //return -10;
     }
     
     return s->getAction(a).reward;

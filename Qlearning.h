@@ -24,14 +24,14 @@ public:
     int nOfActions();
     float getQval(int a);
     void setQval(int a, float q);
-    void setVisited();
-    void clearVisited();
-    bool isVisited();
+    void setVisited(); // Deprecated
+    void clearVisited(); // Deprecated
+    bool isVisited(); // Deprecated
     int getStateNum();
     void setFullSindex(int si, std::vector<int>* fullState);
     void updateAllStates(); //Deprecated. It is really only necessary to update the single action with new states rather than all.
     void updateSingleState(int a);
-    bool allVisited();
+    bool allVisited(); // Deprecated
     int getStateSize();
     bool getEmptyState();
     void setEmptyState(bool e);
@@ -58,8 +58,9 @@ public:
 
     void addState(State* s);
     void addConnection(State* s1, State* s2, float reward);
-    bool allVisited();
-    void clearVisited();
+    void setMaxContent(int content); // Set max number of balls to distribute.
+    bool allVisited(); // Deprecated
+    void clearVisited(); // Deprecated
     std::vector<State*> getAllStates();
     void updateState(int fullSindex);
     std::vector<int> getGraphState();
@@ -68,6 +69,7 @@ private:
     std::vector<State*> states;
     std::vector<int> graphState;
     int fullStateIndex = 0;
+    int maxContent;
 };
 
 class Qlearning {
