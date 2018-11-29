@@ -10,8 +10,8 @@ void Node::setIndex(int index) {
     nodeIndex = index;
 }
 
-void Node::addEdge(int* edgeNum, Node* n, float c) {
-    edge e = {.edgeNumber = *edgeNum++, .next = n, .cost = c};
+void Node::addEdge(int edgeNum, Node* n, float c) {
+    edge e = {.edgeNumber = edgeNum, .next = n, .cost = c};
     edges.push_back(e);
 }
 
@@ -21,6 +21,26 @@ int Node::nOfEdges() {
 
 int Node::getEdgeNum(int edgeIndex) {
     return edges[edgeIndex].edgeNumber;
+}
+
+Node* Node::getNext(int edgeIndex) {
+    return edges[edgeIndex].next;
+}
+
+float Node::getCost(int edgeIndex) {
+    return edges[edgeIndex].cost;
+}
+
+int Node::getNodeIndex() {
+    return nodeIndex;
+}
+
+void Node::addContent(float c) {
+    content = c;
+}
+
+float Node::getContent() {
+    return content;
 }
 
 /***** Graph *****/
@@ -36,14 +56,41 @@ void Graph::addNode(Node* n) {
 }
 
 void Graph::addConnection(Node* n1, Node* n2, float cost) {
-    n1->addEdge(&nOfEdges, n2, cost);
-    n2->addEdge(&nOfEdges, n1, cost);
+    n1->addEdge(nOfEdges++, n2, cost);
+    n2->addEdge(nOfEdges++, n1, cost);
 }
 
 int Graph::getNofEdges() {
     return nOfEdges;
 }
 
+std::vector<Node*> Graph::getNodes() {
+    return nodes;
+}
+
 DynReg Graph::getState() {
     return state;
+}
+
+void Graph::setState(int index) {
+    state.set(index);
+}
+
+void Graph::clearState(int index) {
+    state.clear(index);
+}
+
+float Graph::getContent(int index) {
+    if (state.read(index)) {
+        state.clear(index);
+        return nodes[index]->getContent();
+    } else
+        return 0;
+}
+
+void Graph::refill() {
+    for (int i = 0; i < nOfNodes; i++) {
+        if (!state.read(i))
+            state.set(i);
+    }
 }

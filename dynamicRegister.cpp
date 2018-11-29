@@ -1,5 +1,4 @@
 #include "dynamicRegister.h"
-#include <iostream>
 
 DynReg::DynReg() {
     data = new int;

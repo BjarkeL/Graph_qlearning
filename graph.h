@@ -15,14 +15,19 @@ public:
     ~Node();
 
     void setIndex(int index);
-    void addEdge(int* edgeNum, Node* n, float c);
+    void addEdge(int edgeNum, Node* n, float c);
     int nOfEdges();
     int getEdgeNum(int edgeIndex);
+    Node* getNext(int edgeIndex);
+    float getCost(int edgeIndex);
+    int getNodeIndex();
+    void addContent(float c);
+    float getContent();
 
 private:
     int nodeIndex;
     std::vector<edge> edges;
-    bool empty;
+    float content = 0;
 };
 
 struct edge {
@@ -41,6 +46,10 @@ public:
     int getNofEdges();
     std::vector<Node*> getNodes();  //Should perhaps interact with nodes solely through Graph.
     DynReg getState();
+    void setState(int index);   //Probably not needed.
+    void clearState(int index); //Probably not needed.
+    float getContent(int index);
+    void refill();
 
 private:
     int nOfNodes = 0;
@@ -49,4 +58,4 @@ private:
     DynReg state;
 };
 
-#endif;
+#endif

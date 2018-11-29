@@ -6,6 +6,10 @@
 #include <vector>
 
 #define DEFAULTQ 0
+#define MAXSTEPS 10
+#define MAXREWARD 10
+#define ALPHA 0.2
+#define GAMMA 0.75
 
 typedef Node State;
 typedef int Action;
@@ -21,10 +25,16 @@ public:
     float getReward(State* s, Action a);
     void calcQval(State* s, Action a);
     float getQval(State* s, Action a);
+    void setQval(State* s, Action a, float qVal);
+
+    void run();
 
 private:
     Graph* map;
     std::vector<std::pair<DynReg, float>>* qValues;
+    bool terminated;
+    int steps;
+    float foundReward = 0;
 };
 
-#endif;
+#endif

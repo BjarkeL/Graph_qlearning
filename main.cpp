@@ -1,10 +1,35 @@
-//#include "graph.h"
-//#include "qlearning.h"
+#include "graph.h"
+#include "qlearning.h"
+#include <vector>
 #include <iostream>
 #include <iomanip>
 #include "dynamicRegister.h"
 
 int main() {
+
+    //Make the graph first.
+    Graph map;
+    for (int i = 0; i < 10; i++) {
+        map.addNode(new Node);
+    }
+    std::vector<Node*> nodes = map.getNodes();
+
+    map.addConnection(nodes[0], nodes[1], -1);
+    map.addConnection(nodes[1], nodes[2], -1);
+    map.addConnection(nodes[2], nodes[3], -1);
+    map.addConnection(nodes[0], nodes[4], -1);
+    map.addConnection(nodes[4], nodes[5], -1);
+    map.addConnection(nodes[4], nodes[6], -1);
+    map.addConnection(nodes[6], nodes[7], -1);
+    map.addConnection(nodes[7], nodes[8], -1);
+    map.addConnection(nodes[6], nodes[9], -1);
+
+    //Then qlearning.
+    Qlearning qTest(&map);
+
+    qTest.run();
+
+
 
     DynReg test;
     DynReg test2;
