@@ -2,6 +2,7 @@
 #include <random>
 #include <iostream>
 #include <iomanip>
+#include <fstream>
 
 Qlearning::Qlearning(Graph* g) {
     qValues = new std::vector<std::pair<DynReg, float>>[g->getNofEdges()];
@@ -13,10 +14,10 @@ Qlearning::~Qlearning() {}
 Action Qlearning::getAction(State* s) {
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<> epsilon(1, 100);
+    std::uniform_int_distribution<> epsilon(1, 50);
     std::uniform_int_distribution<> explore(0, s->nOfEdges() - 1);
 
-    if (epsilon(gen) == 50)
+    if (epsilon(gen) == 5 && randomOn)
         return explore(gen);
     else
         return getMaxAction(s);
@@ -56,14 +57,15 @@ float Qlearning::getReward(State* s, Action a) {
     State* nextState = getNextState(s, a);
     float nodeContent = map->getContent(nextState->getNodeIndex());
     float actionCost = s->getCost(a);
+    episodeCost += actionCost;
     foundReward += nodeContent;
     if (steps >= MAXSTEPS - 1) {
         terminated = true;
-        return nodeContent + actionCost;
+        return nodeContent + actionCost - 10;
     }
     if (foundReward >= MAXREWARD) {
         terminated = true;
-        return nodeContent + actionCost + 20;
+        return nodeContent + actionCost + 10;
     }
     return nodeContent + actionCost;
 }
@@ -118,15 +120,23 @@ void Qlearning::setQval(State* s, Action a, float qVal, DynReg state) {
 }
 
 void Qlearning::run() {
-    int totalRuns = 50;
+    int totalRuns = 500;
+
+    std::ofstream avgReward;
+    avgReward.open("avgReward.txt");
+    std::ofstream avgCost;
+    avgCost.open("avgCost.txt");
 
     //Create a duplicate of the state wished to enter from.
-    State* entryState = map->addEntryNode(map->getNodes()[0]);
+    State* entryState = map->addEntryNode(map->getNodes()[9]);
 
     for (int i = 1; i <= totalRuns; i++) {
         terminated = false;
         steps = 0;
         foundReward = 0;
+        episodeCost = 0;
+        if (i == totalRuns - 10)
+            randomOn = false;
         //Set an initial state.
         State* currentState = entryState;
 
@@ -138,12 +148,16 @@ void Qlearning::run() {
 
             steps++;
             currentState = getNextState(currentState, nextAction);
-            
-            std::cout << currentState->getNodeIndex() << " -> ";
+
+            //std::cout << currentState->getNodeIndex() << " -> ";
         }
-        std::cout << std::endl;
+        //std::cout << std::endl;
         map->refill();
+        avgReward << foundReward/steps << std::endl;
+        avgCost << episodeCost/steps << std::endl;
     }
+    avgReward.close();
+    avgCost.close();
     //print();
 }
 

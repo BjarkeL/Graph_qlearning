@@ -14,6 +14,25 @@ int main() {
     }
     std::vector<Node*> nodes = map.getNodes();
 
+    map.addConnection(nodes[0], nodes[8], -2);
+    map.addConnection(nodes[1], nodes[8], -2);
+    map.addConnection(nodes[2], nodes[8], -2);
+    map.addConnection(nodes[3], nodes[8], -3);
+    map.addConnection(nodes[9], nodes[8], -10);
+    map.addConnection(nodes[5], nodes[9], -2);
+    map.addConnection(nodes[6], nodes[9], -8);
+    map.addConnection(nodes[5], nodes[4], -1);
+    map.addConnection(nodes[5], nodes[7], -1);
+
+    nodes[0]->addContent(8);
+    nodes[1]->addContent(10);
+    nodes[2]->addContent(6);
+    nodes[3]->addContent(4);
+    nodes[4]->addContent(4);
+    nodes[5]->addContent(6);
+    nodes[6]->addContent(2);
+    nodes[7]->addContent(8);
+/*
     map.addConnection(nodes[0], nodes[1], -1);
     map.addConnection(nodes[1], nodes[2], -1);
     map.addConnection(nodes[2], nodes[3], -1);
@@ -27,7 +46,7 @@ int main() {
     //Add content into a few nodes:
     nodes[9]->addContent(7);
     nodes[8]->addContent(7);
-
+*/
     //Then qlearning.
     Qlearning qTest(&map);
 

@@ -6,10 +6,10 @@
 #include <vector>
 
 #define DEFAULTQ 0
-#define MAXSTEPS 10
-#define MAXREWARD 10
-#define ALPHA 0.2
-#define GAMMA 0.75
+#define MAXSTEPS 20
+#define MAXREWARD 43
+#define ALPHA 0.1
+#define GAMMA 0.9
 
 typedef Node State;
 typedef int Action;
@@ -37,6 +37,8 @@ private:
     bool terminated;
     int steps;
     float foundReward = 0;
+    float episodeCost = 0;
+    bool randomOn = true;
 };
 
 #endif
