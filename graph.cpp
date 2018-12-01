@@ -64,6 +64,10 @@ int Graph::getNofEdges() {
     return nOfEdges;
 }
 
+int Graph::getNofNodes() {
+    return nOfNodes;
+}
+
 std::vector<Node*> Graph::getNodes() {
     return nodes;
 }
@@ -93,4 +97,10 @@ void Graph::refill() {
         if (!state.read(i))
             state.set(i);
     }
+}
+
+Node* Graph::addEntryNode(Node* entryPoint) {
+    entry = new Node;
+    entry->addEdge(entryPoint->getNodeIndex(), entryPoint, 0);
+    return entry;
 }

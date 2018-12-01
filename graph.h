@@ -44,18 +44,21 @@ public:
     void addNode(Node* n);
     void addConnection(Node* n1, Node* n2, float cost);
     int getNofEdges();
+    int getNofNodes();
     std::vector<Node*> getNodes();  //Should perhaps interact with nodes solely through Graph.
     DynReg getState();
     void setState(int index);   //Probably not needed.
     void clearState(int index); //Probably not needed.
     float getContent(int index);
     void refill();
+    Node* addEntryNode(Node* entryPoint);
 
 private:
     int nOfNodes = 0;
     int nOfEdges = 0;
     std::vector<Node*> nodes;
     DynReg state;
+    Node* entry;
 };
 
 #endif

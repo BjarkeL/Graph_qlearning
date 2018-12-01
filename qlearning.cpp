@@ -1,6 +1,7 @@
 #include "qlearning.h"
 #include <random>
 #include <iostream>
+#include <iomanip>
 
 Qlearning::Qlearning(Graph* g) {
     qValues = new std::vector<std::pair<DynReg, float>>[g->getNofEdges()];
@@ -12,10 +13,10 @@ Qlearning::~Qlearning() {}
 Action Qlearning::getAction(State* s) {
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<> epsilon(1, 10);
+    std::uniform_int_distribution<> epsilon(1, 100);
     std::uniform_int_distribution<> explore(0, s->nOfEdges() - 1);
 
-    if (epsilon(gen) == 5)
+    if (epsilon(gen) == 50)
         return explore(gen);
     else
         return getMaxAction(s);
@@ -52,15 +53,17 @@ State* Qlearning::getNextState(State* s, Action a) {
 }
 
 float Qlearning::getReward(State* s, Action a) {
-    float nodeContent = map->getContent(s->getNodeIndex());
+    State* nextState = getNextState(s, a);
+    float nodeContent = map->getContent(nextState->getNodeIndex());
     float actionCost = s->getCost(a);
+    foundReward += nodeContent;
     if (steps >= MAXSTEPS - 1) {
         terminated = true;
-        return nodeContent + actionCost - 10;
+        return nodeContent + actionCost;
     }
     if (foundReward >= MAXREWARD) {
         terminated = true;
-        return nodeContent + actionCost + 10;
+        return nodeContent + actionCost + 20;
     }
     return nodeContent + actionCost;
 }
@@ -69,61 +72,63 @@ void Qlearning::calcQval(State* s, Action a) {
     //Get the current q-value of the state.
     float currentQ = getQval(s, a);
     //Get the state to be updated before it empties.
-    DynReg stateToUpdate = map->getState();
+    DynReg stateToUpdate;
+    for (int i = 0; i < map->getNofNodes(); i++) {
+        stateToUpdate.add(map->getState().read(i));
+    }
+
     //Get the reward for taking the action.
     float reward = getReward(s, a);
     //Get the resulting state of taking the action.
     State* nextState = getNextState(s, a);
     //Get the max action from the next state.
-    Action maxNextAction = getMaxAction(nextState); //Must be without updating the state.
+    Action maxNextAction = getMaxAction(nextState);
     //Get the max next q-value.
     float maxNextQ = getQval(nextState, maxNextAction);
 
     float qVal = currentQ + ALPHA * ( reward + GAMMA * maxNextQ - currentQ );
 
     //Find or add the state for the q-value to be updated.
-    if (qValues[s->getEdgeNum(a)].empty())
-        qValues[s->getEdgeNum(a)].push_back(std::make_pair(stateToUpdate, qVal));
-    else {
-        for (auto& q : qValues[s->getEdgeNum(a)]) {
-            if (stateToUpdate == q.first) {
-                q.second = qVal;
-                break;
-            }
-        }
-    }
+    setQval(s, a, qVal, stateToUpdate);
 }
 
 float Qlearning::getQval(State* s, Action a) {
-    if (qValues[s->getEdgeNum(a)].empty())
-        return DEFAULTQ;
-    for (auto& q : qValues[s->getEdgeNum(a)]) {
-        if (map->getState() == q.first)
-            return q.second;
+    if (!qValues[s->getEdgeNum(a)].empty()) {
+        for (auto& q : qValues[s->getEdgeNum(a)]) {
+            if (map->getState() == q.first)
+                return q.second;
+        }
     }
+    return DEFAULTQ;
 }
 
-void Qlearning::setQval(State* s, Action a, float qVal) {
-    if (qValues[s->getEdgeNum(a)].size() == 0)
-        qValues[s->getEdgeNum(a)].push_back(std::make_pair(map->getState(), qVal));
-    else {
+void Qlearning::setQval(State* s, Action a, float qVal, DynReg state) {
+    bool notFound = true;
+    if(!qValues[s->getEdgeNum(a)].empty()) {
         for (auto& q : qValues[s->getEdgeNum(a)]) {
-            if (map->getState() == q.first) {
+            if (state == q.first) {
                 q.second = qVal;
+                notFound = false;
                 break;
             }
         }
     }
+    if (qValues[s->getEdgeNum(a)].empty() || notFound)
+        qValues[s->getEdgeNum(a)].push_back(std::make_pair(state, qVal));
 }
 
 void Qlearning::run() {
-    int totalRuns = 200;
+    int totalRuns = 50;
+
+    //Create a duplicate of the state wished to enter from.
+    State* entryState = map->addEntryNode(map->getNodes()[0]);
 
     for (int i = 1; i <= totalRuns; i++) {
         terminated = false;
-        steps = 1;
-        //Set an initial state: (Could easily make it random).
-        State* currentState = map->getNodes()[0];
+        steps = 0;
+        foundReward = 0;
+        //Set an initial state.
+        State* currentState = entryState;
 
         //Run until an episode terminates.
         while (!terminated) {
@@ -131,10 +136,27 @@ void Qlearning::run() {
 
             calcQval(currentState, nextAction);
 
-            currentState = getNextState(currentState, nextAction);
-
             steps++;
+            currentState = getNextState(currentState, nextAction);
+            
+            std::cout << currentState->getNodeIndex() << " -> ";
         }
+        std::cout << std::endl;
         map->refill();
     }
+    //print();
+}
+
+void Qlearning::print() {
+    int nQvals = 0;
+    //std::cout << qValues[0].size() << std::endl;
+    for (int i = 0; i < map->getNofEdges(); i++) {
+        nQvals += qValues[i].size();
+        //std::cout << "Edge " << i + 1 << std::endl;
+        //for (auto& q : qValues[i]) {
+        //    std::cout << std::setprecision(2) << q.second << ", ";
+        //}
+        //std::cout << std::endl;
+    }
+    std::cout << nQvals << std::endl;
 }

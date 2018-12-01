@@ -25,9 +25,11 @@ public:
     float getReward(State* s, Action a);
     void calcQval(State* s, Action a);
     float getQval(State* s, Action a);
-    void setQval(State* s, Action a, float qVal);
+    void setQval(State* s, Action a, float qVal, DynReg state);
 
     void run();
+
+    void print();
 
 private:
     Graph* map;

@@ -24,13 +24,17 @@ int main() {
     map.addConnection(nodes[7], nodes[8], -1);
     map.addConnection(nodes[6], nodes[9], -1);
 
+    //Add content into a few nodes:
+    nodes[9]->addContent(7);
+    nodes[8]->addContent(7);
+
     //Then qlearning.
     Qlearning qTest(&map);
 
     qTest.run();
 
 
-
+/*
     DynReg test;
     DynReg test2;
 
@@ -50,6 +54,6 @@ int main() {
     }
 
     std::cout << "a equal b? " << bool(test == test2) << std::endl;
-
+*/
     return 0;
 }
