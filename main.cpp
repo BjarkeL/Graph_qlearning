@@ -4,9 +4,30 @@
 #include <iostream>
 #include <iomanip>
 #include "dynamicRegister.h"
+#include <random>
+#include <fstream>
 
-int main() {
+void printToFile(results& input) {
+    std::ofstream reward;
+    std::ofstream cost;
+    std::ofstream steps;
+    reward.open("reward.txt");
+    cost.open("cost.txt");
+    steps.open("steps.txt");
 
+    for (const auto& r : input.reward)
+        reward << r << std::endl;
+    for (const auto& c : input.cost)
+        cost << c << std::endl;
+    for (const auto& s : input.steps)
+        steps << s << std::endl;
+
+    reward.close();
+    cost.close();
+    steps.close();
+}
+
+void testGraph1() {
     //Make the graph first.
     Graph map;
     for (int i = 0; i < 10; i++) {
@@ -23,56 +44,63 @@ int main() {
     map.addConnection(nodes[6], nodes[9], -8);
     map.addConnection(nodes[5], nodes[4], -1);
     map.addConnection(nodes[5], nodes[7], -1);
-
-    nodes[0]->addContent(8);
-    nodes[1]->addContent(10);
-    nodes[2]->addContent(6);
-    nodes[3]->addContent(4);
-    nodes[4]->addContent(4);
-    nodes[5]->addContent(6);
-    nodes[6]->addContent(2);
-    nodes[7]->addContent(8);
-/*
-    map.addConnection(nodes[0], nodes[1], -1);
-    map.addConnection(nodes[1], nodes[2], -1);
-    map.addConnection(nodes[2], nodes[3], -1);
-    map.addConnection(nodes[0], nodes[4], -1);
-    map.addConnection(nodes[4], nodes[5], -1);
-    map.addConnection(nodes[4], nodes[6], -1);
-    map.addConnection(nodes[6], nodes[7], -1);
-    map.addConnection(nodes[7], nodes[8], -1);
-    map.addConnection(nodes[6], nodes[9], -1);
-
-    //Add content into a few nodes:
-    nodes[9]->addContent(7);
-    nodes[8]->addContent(7);
-*/
+    
     //Then qlearning.
     Qlearning qTest(&map);
 
-    qTest.run();
+    std::vector<float> rewards = {8, 10, 6, 4, 4, 6, 2, 8};
 
+    results test = qTest.run(rewards, 9, 0.1, 0.9, 15, 40, 500, 100);
 
-/*
-    DynReg test;
-    DynReg test2;
+    printToFile(test);
+}
 
-    for (int i = 0; i < 15; i++) {
-        test.add(1);
+void testGraph2() {
+    //Make the graph first.
+    Graph map;
+    for (int i = 0; i < 20; i++) {
+        map.addNode(new Node);
     }
-    for (int i = 0; i < 15; i++) {
-        test2.add(1);
-    }
+    std::vector<Node*> nodes = map.getNodes();
 
-    std::cout << "Size of register: " << test.getSize() << std::endl;
+    float factor = 1.5;
 
-    test2.clear(14);
+    map.addConnection(nodes[0], nodes[1], -3 * factor);
+    map.addConnection(nodes[1], nodes[2], -3 * factor);
+    map.addConnection(nodes[2], nodes[3], -2 * factor);
+    map.addConnection(nodes[3], nodes[4], -5 * factor);
+    map.addConnection(nodes[4], nodes[5], -4 * factor);
+    map.addConnection(nodes[5], nodes[6], -2 * factor);
+    map.addConnection(nodes[6], nodes[7], -1 * factor);
+    map.addConnection(nodes[7], nodes[8], -1 * factor);
+    map.addConnection(nodes[4], nodes[9], -2 * factor);
+    map.addConnection(nodes[9], nodes[10], -1 * factor);
+    map.addConnection(nodes[10], nodes[14], -4 * factor);
+    map.addConnection(nodes[2], nodes[11], -2 * factor);
+    map.addConnection(nodes[11], nodes[12], -1 * factor);
+    map.addConnection(nodes[12], nodes[13], -2 * factor);
+    map.addConnection(nodes[13], nodes[14], -5 * factor);
+    map.addConnection(nodes[14], nodes[15], -2 * factor);
+    map.addConnection(nodes[15], nodes[16], -1 * factor);
+    map.addConnection(nodes[11], nodes[17], -3 * factor);
+    map.addConnection(nodes[17], nodes[13], -3 * factor);
+    map.addConnection(nodes[13], nodes[18], -5 * factor);
+    map.addConnection(nodes[18], nodes[19], -1 * factor);
+    map.addConnection(nodes[19], nodes[10], -2 * factor);
+    
+    //Then qlearning.
+    Qlearning qTest(&map);
 
-    for (int i = 0; i < 15; i++) {
-        std::cout << "Line: " << std::setw(2) << i << ": a * " << test.read(i) << ", b * " << test2.read(i) << std::endl;
-    }
+    std::vector<float> rewards = {3,10,1,0,7,5,0,0,15,10,5,7,3,1,7,15,0,8,4,12};
 
-    std::cout << "a equal b? " << bool(test == test2) << std::endl;
-*/
+    results test = qTest.run(rewards, 13, 0.1, 0.9, 20, 70, 1000, 100);
+    
+    printToFile(test);
+}
+
+int main() {
+
+    testGraph2();
+
     return 0;
 }
