@@ -13,13 +13,19 @@ Qlearning::~Qlearning() {}
 Action Qlearning::getAction(State* s) {
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<> epsilon(1, 50);
+    std::uniform_int_distribution<> epsilon(1, 100/greedP);
     std::uniform_int_distribution<> explore(0, s->nOfEdges() - 1);
+    Action max = getMaxAction(s);
 
-    if (epsilon(gen) == 5 && randomOn)
-        return explore(gen);
+    if (epsilon(gen) == 1 && randomOn && s->nOfEdges() > 1){
+        while(true){
+            Action sel = explore(gen);
+            if(sel != max)
+                return sel;
+        }
+    }
     else
-        return getMaxAction(s);
+        return max;
 }
 
 Action Qlearning::getMaxAction(State* s) {
@@ -54,17 +60,17 @@ State* Qlearning::getNextState(State* s, Action a) {
 
 float Qlearning::getReward(State* s, Action a) {
     State* nextState = getNextState(s, a);
-    float nodeContent = map->getContent(nextState->getNodeIndex());
+    float nodeContent = map->getContent(nextState->getNodeIndex()); // antal marbles
     float actionCost = s->getCost(a);
     episodeCost += actionCost;
     foundReward += nodeContent;
     if (steps >= maxSteps - 1) {
         terminated = true;
-        return nodeContent + actionCost - 10;
+        return nodeContent + actionCost;
     }
     if (foundReward >= maxReward) {
         terminated = true;
-        return nodeContent + actionCost + 10;
+        return nodeContent + actionCost + 20;
     }
     return nodeContent + actionCost;
 }
@@ -126,14 +132,52 @@ void Qlearning::randomizeRewards(std::vector<float> rewards, float deviation) {
         map->getNodes()[i]->addContent(abs((int)R(gen)));
     }
 }
+void Qlearning::randomizeRewards2(std::vector<float> rewards) {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> R(0, 1);
+    
+    int totalMarbles = 0;
+    for (auto& s : rewards)
+        totalMarbles += s;
 
-results Qlearning::run(std::vector<float> rewards, int startNode, float a, float g, int maxS, int maxR, int totalR, int rOff) {
+    std::vector<float> cdf;
+    float temp = 0;
+    for (auto& s : rewards) {
+        temp += s;
+        cdf.push_back(temp/totalMarbles);
+    }
+    
+    //for (auto& r : cdf)
+    //    std::cout << r << ", ";
+
+    float* rew = new float[rewards.size()];
+    for(int i = 0; i < rewards.size(); i++)
+        rew[i] = 0;
+
+    for (int i = 0; i < totalMarbles; i++) {
+        float select = R(gen);
+        int n = 0;
+        for (auto& r : cdf) {
+            if (select < r) {
+                rew[n]++;
+                break;
+            }
+            n++;
+        }
+    }
+    for (int i = 0; i < rewards.size(); i++)
+        map->getNodes()[i]->addContent(rew[i]);
+}
+
+results Qlearning::run(std::vector<float> rewards, int startNode, float a, float g, int percentG, int maxS, int maxR, int totalR, int rOff) {
     randomOn = true;
     int totalRuns = totalR;
     alpha = a;
     gamma = g;
     maxSteps = maxS;
     maxReward = maxR;
+    greedP = percentG;
 
     results result;
 
@@ -147,7 +191,11 @@ results Qlearning::run(std::vector<float> rewards, int startNode, float a, float
         episodeCost = 0;
         if (i == totalRuns - rOff)
             randomOn = false;
-        randomizeRewards(rewards, 1);
+        //randomizeRewards(rewards, 1);
+        randomizeRewards2(rewards);
+        //std::cout << "Run " << i << std::endl;
+        //for (int j = 0; j < map->getNofNodes(); j++)
+        //    std::cout << "Node " << j << ", " << map->getNodes()[j]->getContent() << "\n";
         //Set an initial state.
         State* currentState = entryState;
         //Run until an episode terminates.
@@ -162,10 +210,10 @@ results Qlearning::run(std::vector<float> rewards, int startNode, float a, float
         result.reward.push_back(foundReward);
         result.steps.push_back(steps);
     }
+    print();
     for (int i = 0; i < map->getNofEdges(); i++) {
         qValues[i].clear();
     }
-    //print();
     return result;
 }
 
@@ -177,6 +225,8 @@ void Qlearning::print() {
         //std::cout << "Edge " << i + 1 << std::endl;
         //for (auto& q : qValues[i]) {
         //    std::cout << std::setprecision(2) << q.second << ", ";
+        //    for (int i = 0; i < map->getNofNodes(); i++)
+        //        std::cout << q.first.read(i);
         //}
         //std::cout << std::endl;
     }

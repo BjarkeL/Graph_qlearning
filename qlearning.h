@@ -10,6 +10,7 @@
 #define MAXREWARD 70
 #define ALPHA 0.1
 #define GAMMA 0.9
+#define GREEDP 10
 
 typedef Node State;
 typedef int Action;
@@ -33,8 +34,9 @@ public:
     float getQval(State* s, Action a);
     void setQval(State* s, Action a, float qVal, DynReg state);
     void randomizeRewards(std::vector<float> rewards, float deviation);
+    void randomizeRewards2(std::vector<float> rewards);
 
-    results run(std::vector<float> rewards, int startNode, float a, float g, int maxS, int maxR, int totalR, int rOff);
+    results run(std::vector<float> rewards, int startNode, float a, float g, int percentG, int maxS, int maxR, int totalR, int rOff);
 
     void print();
 
@@ -50,6 +52,7 @@ private:
     float gamma = GAMMA;
     int maxSteps = MAXSTEPS;
     int maxReward = MAXREWARD;
+    int greedP = GREEDP;
 };
 
 #endif

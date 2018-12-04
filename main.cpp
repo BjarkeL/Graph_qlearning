@@ -6,8 +6,12 @@
 #include "dynamicRegister.h"
 #include <random>
 #include <fstream>
+#include <string>
 
-void printToFile(results& input) {
+#define RUNS 3
+#define TOTALSTEPS 2000
+
+void printToFile(std::array<std::vector<float>, RUNS> r, std::array<std::vector<float>, RUNS> c, std::array<std::vector<float>, RUNS> s) {
     std::ofstream reward;
     std::ofstream cost;
     std::ofstream steps;
@@ -15,18 +19,28 @@ void printToFile(results& input) {
     cost.open("cost.txt");
     steps.open("steps.txt");
 
-    for (const auto& r : input.reward)
-        reward << r << std::endl;
-    for (const auto& c : input.cost)
-        cost << c << std::endl;
-    for (const auto& s : input.steps)
-        steps << s << std::endl;
+    for (int j = 0; j < TOTALSTEPS; j++) {
+        for (int i = 0; i < RUNS; i++)
+            reward << r[i][j] << ",";    
+        reward << std::endl;
+    }
+    for (int j = 0; j < TOTALSTEPS; j++) {
+        for (int i = 0; i < RUNS; i++)
+            cost << c[i][j] << ",";    
+        cost << std::endl;
+    }
+    for (int j = 0; j < TOTALSTEPS; j++) {
+        for (int i = 0; i < RUNS; i++)
+            steps << s[i][j] << ",";    
+        steps << std::endl;
+    }
 
     reward.close();
     cost.close();
     steps.close();
 }
 
+/*
 void testGraph1() {
     //Make the graph first.
     Graph map;
@@ -52,8 +66,9 @@ void testGraph1() {
 
     results test = qTest.run(rewards, 9, 0.1, 0.9, 15, 40, 500, 100);
 
-    printToFile(test);
+    printToFile(test, "1");
 }
+*/
 
 void testGraph2() {
     //Make the graph first.
@@ -91,11 +106,45 @@ void testGraph2() {
     //Then qlearning.
     Qlearning qTest(&map);
 
-    std::vector<float> rewards = {3,10,1,0,7,5,0,0,15,10,5,7,3,1,7,15,0,8,4,12};
+    std::vector<float> rewards = {15,10,1,0,7,5,0,0,15,10,5,7,3,1,7,15,0,8,4,10};
 
-    results test = qTest.run(rewards, 13, 0.1, 0.9, 20, 70, 1000, 100);
-    
-    printToFile(test);
+    int startNode = 13;
+    float alpha = 0.1;
+    float gamma = 0.9;
+    int maxSteps = 25;
+    int maxReward = 85;
+    int totalSteps = TOTALSTEPS;
+    int randomOff = 200;
+    int greed = 5;
+
+    int fileIndex = 1;
+
+    std::array<std::vector<float>, RUNS> rew;
+    std::array<std::vector<float>, RUNS> cost;
+    std::array<std::vector<float>, RUNS> steps;
+
+    for (int i = 0; i < RUNS; i++) {
+        results test = qTest.run(
+            rewards,
+            startNode,
+            alpha,
+            gamma,
+            greed,
+            maxSteps,
+            maxReward,
+            totalSteps,
+            randomOff);
+
+        for (auto& r : test.reward)
+            rew[i].push_back(r);
+        for (auto& c : test.cost)
+            cost[i].push_back(c);
+        for (auto& s : test.steps)
+            steps[i].push_back(s);
+
+        greed += 5;
+    }
+        printToFile(rew, cost, steps);
 }
 
 int main() {
