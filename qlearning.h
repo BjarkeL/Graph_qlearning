@@ -19,6 +19,7 @@ struct results {
     std::vector<float> reward;
     std::vector<float> cost;
     std::vector<float> steps;
+    std::vector<std::vector<int>> routes;
 };
 
 class Qlearning {
@@ -53,6 +54,8 @@ private:
     int maxSteps = MAXSTEPS;
     int maxReward = MAXREWARD;
     int greedP = GREEDP;
+    bool terminateAtReward = true;
+    std::vector<int> route;
 };
 
 #endif

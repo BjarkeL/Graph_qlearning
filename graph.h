@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "dynamicRegister.h"
+#include <array>
 
 #define FULL 1
 #define EMPTY 0
@@ -52,6 +53,7 @@ public:
     float getContent(int index);
     void refill();
     Node* addEntryNode(Node* entryPoint);
+    void buildGraph(std::vector<std::array<int, 3>> allNodes);
 
 private:
     int nOfNodes = 0;

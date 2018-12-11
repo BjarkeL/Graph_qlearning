@@ -68,9 +68,9 @@ float Qlearning::getReward(State* s, Action a) {
         terminated = true;
         return nodeContent + actionCost;
     }
-    if (foundReward >= maxReward) {
+    if (foundReward >= maxReward && terminateAtReward) {
         terminated = true;
-        return nodeContent + actionCost + 20;
+        return nodeContent + actionCost + 10;
     }
     return nodeContent + actionCost;
 }
@@ -178,6 +178,7 @@ results Qlearning::run(std::vector<float> rewards, int startNode, float a, float
     maxSteps = maxS;
     maxReward = maxR;
     greedP = percentG;
+    terminateAtReward = true;
 
     results result;
 
@@ -189,8 +190,11 @@ results Qlearning::run(std::vector<float> rewards, int startNode, float a, float
         steps = 0;
         foundReward = 0;
         episodeCost = 0;
+        route.clear();
         if (i == totalRuns - rOff)
             randomOn = false;
+        if (i > totalRuns - 10)
+            terminateAtReward = false;
         //randomizeRewards(rewards, 1);
         randomizeRewards2(rewards);
         //std::cout << "Run " << i << std::endl;
@@ -204,7 +208,11 @@ results Qlearning::run(std::vector<float> rewards, int startNode, float a, float
             calcQval(currentState, nextAction);
             steps++;
             currentState = getNextState(currentState, nextAction);
+            if (!terminateAtReward)
+                route.push_back(currentState->getNodeIndex());
         }
+        if (!route.empty())
+            result.routes.push_back(route);
         map->refill();
         result.cost.push_back(episodeCost);
         result.reward.push_back(foundReward);

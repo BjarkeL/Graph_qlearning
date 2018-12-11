@@ -104,3 +104,8 @@ Node* Graph::addEntryNode(Node* entryPoint) {
     entry->addEdge(entryPoint->getNodeIndex(), entryPoint, 0);
     return entry;
 }
+
+void Graph::buildGraph(std::vector<std::array<int, 3>> allNodes) {
+    for (auto& a : allNodes)
+        addConnection(nodes[a[0]], nodes[a[1]], a[2]);
+}
