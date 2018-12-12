@@ -170,7 +170,7 @@ void Qlearning::randomizeRewards2(std::vector<float> rewards) {
         map->getNodes()[i]->addContent(rew[i]);
 }
 
-results Qlearning::run(std::vector<float> rewards, int startNode, float a, float g, int percentG, int maxS, int maxR, int totalR, int rOff) {
+results Qlearning::run(std::vector<float> rewards, int startNode, float a, float g, int percentG, int maxS, float maxR, int totalR, int rOff) {
     randomOn = true;
     int totalRuns = totalR;
     alpha = a;
@@ -191,7 +191,7 @@ results Qlearning::run(std::vector<float> rewards, int startNode, float a, float
         foundReward = 0;
         episodeCost = 0;
         route.clear();
-        if (i == totalRuns - rOff)
+        if (i == totalRuns - rOff + 1)
             randomOn = false;
         if (i > totalRuns - 10)
             terminateAtReward = false;
@@ -217,6 +217,8 @@ results Qlearning::run(std::vector<float> rewards, int startNode, float a, float
         result.cost.push_back(episodeCost);
         result.reward.push_back(foundReward);
         result.steps.push_back(steps);
+        //if (i == totalRuns - 10)
+        //    std::cout << steps << std::endl;
     }
     print();
     for (int i = 0; i < map->getNofEdges(); i++) {

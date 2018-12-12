@@ -53,7 +53,7 @@ public:
     float getContent(int index);
     void refill();
     Node* addEntryNode(Node* entryPoint);
-    void buildGraph(std::vector<std::array<int, 3>> allNodes);
+    void buildGraph(std::vector<std::array<float, 3>> allNodes);
 
 private:
     int nOfNodes = 0;

@@ -105,7 +105,7 @@ Node* Graph::addEntryNode(Node* entryPoint) {
     return entry;
 }
 
-void Graph::buildGraph(std::vector<std::array<int, 3>> allNodes) {
+void Graph::buildGraph(std::vector<std::array<float, 3>> allNodes) {
     for (auto& a : allNodes)
         addConnection(nodes[a[0]], nodes[a[1]], a[2]);
 }

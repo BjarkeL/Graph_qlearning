@@ -9,7 +9,7 @@
 #include <string>
 
 #define RUNS 4
-#define TOTALSTEPS 5000
+#define TOTALSTEPS 3010
 
 void printToFile(std::array<std::vector<float>, RUNS> r, std::array<std::vector<float>, RUNS> c, std::array<std::vector<float>, RUNS> s, std::array<std::vector<std::vector<int>>, RUNS> R) {
     int runIndex = 1;
@@ -53,7 +53,7 @@ void printToFile(std::array<std::vector<float>, RUNS> r, std::array<std::vector<
     routes.close();
 }
 
-void run(Qlearning &q, std::vector<float> rewards, int startNode, float alpha, float gamma, int greed, int maxSteps, int maxReward, int totalSteps, int randomOff) {
+void run(Qlearning &q, std::vector<float> rewards, int startNode, float alpha, float gamma, int greed, int maxSteps, float maxReward, int totalSteps, int randomOff) {
     std::array<std::vector<float>, RUNS> rew;
     std::array<std::vector<float>, RUNS> cost;
     std::array<std::vector<float>, RUNS> steps;
@@ -208,39 +208,51 @@ void testGraph3() {
     while (!file1.eof()) {
         std::getline(file1, line);
         if (line.size()) {
-            roomSizes.push_back((float)std::stoi(line));
-            totalSize += std::stoi(line);
+            roomSizes.push_back(std::stof(line));
+            totalSize += std::stof(line);
         }
     }
 
     file1.close();
     std::ifstream file2("connections.txt");
     
-    std::vector<std::array<int, 3>> connections;
-    int n1, n2;
+    std::vector<std::array<float, 3>> connections;
+    float n1, n2, n3;
     while (!file2.eof()) {
+        int prevI = 0;
         std::getline(file2, line);
         if (line.size()) {
             for(int i = 0; i < line.size(); i++) {
                 if (line[i] == ' ') {
-                    n1 = std::stoi(line.substr(0, i));
-                    n2 = std::stoi(line.substr(i+1, line.size()-1));
-                    connections.push_back({n1, n2, -2});
-                    break;
+                    if (!prevI) {
+                        n1 = std::stoi(line.substr(0, i));
+                        prevI = i;
+                    } else {
+                        n2 = std::stoi(line.substr(prevI+1, i));
+                        n3 = std::stof(line.substr(i+1, line.size()-1));
+                        connections.push_back({n1, n2, n3});
+                        break;
+                    }
                 }
             }
         }
     }
+    for (auto& c : connections) {
+        std::cout << c[0] << ", " << c[1] << ", " << c[2] << std::endl;
+    }
+    for (auto& r : roomSizes) {
+        std::cout << r << std::endl;
+    }
 
     map.buildGraph(connections);
 
-    int startNode = 0;
+    int startNode = 9;
     float alpha = 0.1;
     float gamma = 0.9;
-    int maxSteps = 20;
-    int maxReward = totalSize*0.75;
+    int maxSteps = 15;
+    float maxReward = totalSize*0.75;
     int totalSteps = TOTALSTEPS;
-    int randomOff = 1000;
+    int randomOff = 1010;
     int greed = 1;
 
     Qlearning q(&map);

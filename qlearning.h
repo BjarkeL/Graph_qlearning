@@ -37,7 +37,7 @@ public:
     void randomizeRewards(std::vector<float> rewards, float deviation);
     void randomizeRewards2(std::vector<float> rewards);
 
-    results run(std::vector<float> rewards, int startNode, float a, float g, int percentG, int maxS, int maxR, int totalR, int rOff);
+    results run(std::vector<float> rewards, int startNode, float a, float g, int percentG, int maxS, float maxR, int totalR, int rOff);
 
     void print();
 
@@ -52,7 +52,7 @@ private:
     float alpha = ALPHA;
     float gamma = GAMMA;
     int maxSteps = MAXSTEPS;
-    int maxReward = MAXREWARD;
+    float maxReward = MAXREWARD;
     int greedP = GREEDP;
     bool terminateAtReward = true;
     std::vector<int> route;
