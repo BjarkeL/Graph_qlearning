@@ -13,11 +13,11 @@ Qlearning::~Qlearning() {}
 Action Qlearning::getAction(State* s) {
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<> epsilon(1, 100/greedP);
+    std::uniform_int_distribution<> epsilon(1, 100);
     std::uniform_int_distribution<> explore(0, s->nOfEdges() - 1);
     Action max = getMaxAction(s);
 
-    if (epsilon(gen) == 1 && randomOn && s->nOfEdges() > 1){
+    if (epsilon(gen) <= greedP && randomOn && s->nOfEdges() > 1){
         while(true){
             Action sel = explore(gen);
             if(sel != max)
@@ -137,7 +137,7 @@ void Qlearning::randomizeRewards2(std::vector<float> rewards) {
     std::mt19937 gen(rd());
     std::uniform_real_distribution<> R(0, 1);
     
-    int totalMarbles = 0;
+    float totalMarbles = 0;
     for (auto& s : rewards)
         totalMarbles += s;
 
@@ -147,7 +147,7 @@ void Qlearning::randomizeRewards2(std::vector<float> rewards) {
         temp += s;
         cdf.push_back(temp/totalMarbles);
     }
-    
+    //std::cout << std::endl << temp << ", " << totalMarbles << std::endl;
     //for (auto& r : cdf)
     //    std::cout << r << ", ";
 
@@ -155,7 +155,7 @@ void Qlearning::randomizeRewards2(std::vector<float> rewards) {
     for(int i = 0; i < rewards.size(); i++)
         rew[i] = 0;
 
-    for (int i = 0; i < totalMarbles; i++) {
+    for (int i = 1; i < totalMarbles; i++) {
         float select = R(gen);
         int n = 0;
         for (auto& r : cdf) {
@@ -166,8 +166,11 @@ void Qlearning::randomizeRewards2(std::vector<float> rewards) {
             n++;
         }
     }
-    for (int i = 0; i < rewards.size(); i++)
+    for (int i = 0; i < rewards.size(); i++) {
         map->getNodes()[i]->addContent(rew[i]);
+        //std::cout << rew[i] << std::endl;
+    }
+    //std::cout << std::endl;
 }
 
 results Qlearning::run(std::vector<float> rewards, int startNode, float a, float g, int percentG, int maxS, float maxR, int totalR, int rOff) {

@@ -9,9 +9,14 @@
 #include <string>
 
 #define RUNS 4
-#define TOTALSTEPS 3010
+#define PRINTEPISODES 10
+#define DISPLAYEPISODES 500
+#define EXPLOREEPISODES 3000
+#define TOTALEPISODES PRINTEPISODES + DISPLAYEPISODES + EXPLOREEPISODES
+#define RANDOMOFF TOTALEPISODES - EXPLOREEPISODES
+#define AVERAGES 5
 
-void printToFile(std::array<std::vector<float>, RUNS> r, std::array<std::vector<float>, RUNS> c, std::array<std::vector<float>, RUNS> s, std::array<std::vector<std::vector<int>>, RUNS> R) {
+void printToFile(std::array<std::array<float, TOTALEPISODES>, RUNS> r, std::array<std::array<float, TOTALEPISODES>, RUNS> c, std::array<std::array<float, TOTALEPISODES>, RUNS> s, std::array<std::vector<std::vector<int>>, RUNS> R) {
     int runIndex = 1;
     std::ofstream reward;
     std::ofstream cost;
@@ -22,17 +27,17 @@ void printToFile(std::array<std::vector<float>, RUNS> r, std::array<std::vector<
     steps.open("steps.txt");
     routes.open("routes.txt");
 
-    for (int j = 0; j < TOTALSTEPS; j++) {
+    for (int j = 0; j < TOTALEPISODES; j++) {
         for (int i = 0; i < RUNS; i++)
             reward << r[i][j] << ",";    
         reward << std::endl;
     }
-    for (int j = 0; j < TOTALSTEPS; j++) {
+    for (int j = 0; j < TOTALEPISODES; j++) {
         for (int i = 0; i < RUNS; i++)
             cost << c[i][j] << ",";    
         cost << std::endl;
     }
-    for (int j = 0; j < TOTALSTEPS; j++) {
+    for (int j = 0; j < TOTALEPISODES; j++) {
         for (int i = 0; i < RUNS; i++)
             steps << s[i][j] << ",";    
         steps << std::endl;
@@ -54,30 +59,40 @@ void printToFile(std::array<std::vector<float>, RUNS> r, std::array<std::vector<
 }
 
 void run(Qlearning &q, std::vector<float> rewards, int startNode, float alpha, float gamma, int greed, int maxSteps, float maxReward, int totalSteps, int randomOff) {
-    std::array<std::vector<float>, RUNS> rew;
-    std::array<std::vector<float>, RUNS> cost;
-    std::array<std::vector<float>, RUNS> steps;
+    std::array<std::array<float, TOTALEPISODES>, RUNS> rew;
+    std::array<std::array<float, TOTALEPISODES>, RUNS> cost;
+    std::array<std::array<float, TOTALEPISODES>, RUNS> steps;
     std::array<std::vector<std::vector<int>>, RUNS> routes;
     results testResult;
 
     for (int i = 0; i < RUNS; i++) {
-        testResult = q.run(
-            rewards,
-            startNode,
-            alpha,
-            gamma,
-            greed,
-            maxSteps,
-            maxReward,
-            totalSteps,
-            randomOff);
+        for (int j = 0; j < TOTALEPISODES; j++) {
+            rew[i][j] = 0;
+            cost[i][j] = 0;
+            steps[i][j] = 0;
+        }
+    }
 
-        for (auto& r : testResult.reward)
-            rew[i].push_back(r);
-        for (auto& c : testResult.cost)
-            cost[i].push_back(c);
-        for (auto& s : testResult.steps)
-            steps[i].push_back(s);
+    for (int i = 0; i < RUNS; i++) {
+        for (int j = 0; j < AVERAGES; j++) {
+
+            testResult = q.run(
+                rewards,
+                startNode,
+                alpha,
+                gamma,
+                greed,
+                maxSteps,
+                maxReward,
+                totalSteps,
+                randomOff);
+
+            for (int k = 0; k < TOTALEPISODES; k++) {
+                rew[i][k] += testResult.reward[k]/AVERAGES;
+                cost[i][k] += testResult.cost[k]/AVERAGES;
+                steps[i][k] += testResult.steps[k]/AVERAGES;
+            }
+        }
         routes[i] = testResult.routes;
 
         greed += 5;
@@ -115,6 +130,7 @@ void testGraph1() {
 }
 */
 
+/*
 void testGraph2() {
     //Make the graph first.
     Graph map;
@@ -158,7 +174,7 @@ void testGraph2() {
     float gamma = 0.9;
     int maxSteps = 25;
     int maxReward = 85;
-    int totalSteps = TOTALSTEPS;
+    int totalSteps = TOTALEPISODES;
     int randomOff = 1000;
     int greed = 1;
 
@@ -192,25 +208,28 @@ void testGraph2() {
     }
         printToFile(rew, cost, steps, routes);
 }
-
+*/
 void testGraph3() {
     Graph map;
-    for (int i = 0; i < 16; i++) {
-        map.addNode(new Node);
-    }
-
+    
     std::ifstream file1("roomWeights.txt");
     
     std::vector<float> roomSizes;
     std::string line;
     float totalSize = 0;
     int test = 0;
+    int numberOfNodes = 0;
     while (!file1.eof()) {
         std::getline(file1, line);
         if (line.size()) {
+            numberOfNodes++;
             roomSizes.push_back(std::stof(line));
             totalSize += std::stof(line);
         }
+    }
+
+    for (int i = 0; i < numberOfNodes; i++) {
+        map.addNode(new Node);
     }
 
     file1.close();
@@ -249,11 +268,11 @@ void testGraph3() {
     int startNode = 9;
     float alpha = 0.1;
     float gamma = 0.9;
-    int maxSteps = 15;
+    int maxSteps = 25;
     float maxReward = totalSize*0.75;
-    int totalSteps = TOTALSTEPS;
-    int randomOff = 1010;
-    int greed = 1;
+    int totalSteps = TOTALEPISODES;
+    int randomOff = RANDOMOFF;
+    int greed = 0;
 
     Qlearning q(&map);
 
@@ -261,6 +280,11 @@ void testGraph3() {
 }
 
 int main() {
+
+    std::ofstream specs;
+    specs.open("specs.txt");
+    specs << EXPLOREEPISODES << "," << DISPLAYEPISODES << "," << PRINTEPISODES;
+    specs.close();
 
     testGraph3();
 
