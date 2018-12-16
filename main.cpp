@@ -10,11 +10,11 @@
 
 #define RUNS 4
 #define PRINTEPISODES 10
-#define DISPLAYEPISODES 500
-#define EXPLOREEPISODES 3000
+#define DISPLAYEPISODES 1000
+#define EXPLOREEPISODES 2000
 #define TOTALEPISODES PRINTEPISODES + DISPLAYEPISODES + EXPLOREEPISODES
 #define RANDOMOFF TOTALEPISODES - EXPLOREEPISODES
-#define AVERAGES 5
+#define AVERAGES 10
 
 void printToFile(std::array<std::array<float, TOTALEPISODES>, RUNS> r, std::array<std::array<float, TOTALEPISODES>, RUNS> c, std::array<std::array<float, TOTALEPISODES>, RUNS> s, std::array<std::vector<std::vector<int>>, RUNS> R) {
     int runIndex = 1;
@@ -96,120 +96,13 @@ void run(Qlearning &q, std::vector<float> rewards, int startNode, float alpha, f
         routes[i] = testResult.routes;
 
         greed += 5;
+        //alpha += 0.2;
+        //gamma -= 0.2;
     }
         printToFile(rew, cost, steps, routes);
 }
 
-/*
-void testGraph1() {
-    //Make the graph first.
-    Graph map;
-    for (int i = 0; i < 10; i++) {
-        map.addNode(new Node);
-    }
-    std::vector<Node*> nodes = map.getNodes();
-
-    map.addConnection(nodes[0], nodes[8], -2);
-    map.addConnection(nodes[1], nodes[8], -2);
-    map.addConnection(nodes[2], nodes[8], -2);
-    map.addConnection(nodes[3], nodes[8], -3);
-    map.addConnection(nodes[9], nodes[8], -10);
-    map.addConnection(nodes[5], nodes[9], -2);
-    map.addConnection(nodes[6], nodes[9], -8);
-    map.addConnection(nodes[5], nodes[4], -1);
-    map.addConnection(nodes[5], nodes[7], -1);
-    
-    //Then qlearning.
-    Qlearning qTest(&map);
-
-    std::vector<float> rewards = {8, 10, 6, 4, 4, 6, 2, 8};
-
-    results test = qTest.run(rewards, 9, 0.1, 0.9, 15, 40, 500, 100);
-
-    printToFile(test, "1");
-}
-*/
-
-/*
-void testGraph2() {
-    //Make the graph first.
-    Graph map;
-    for (int i = 0; i < 20; i++) {
-        map.addNode(new Node);
-    }
-    std::vector<Node*> nodes = map.getNodes();
-
-    float factor = 1.5;
-
-    map.addConnection(nodes[0], nodes[1], -3 * factor);
-    map.addConnection(nodes[1], nodes[2], -3 * factor);
-    map.addConnection(nodes[2], nodes[3], -2 * factor);
-    map.addConnection(nodes[3], nodes[4], -5 * factor);
-    map.addConnection(nodes[4], nodes[5], -4 * factor);
-    map.addConnection(nodes[5], nodes[6], -2 * factor);
-    map.addConnection(nodes[6], nodes[7], -1 * factor);
-    map.addConnection(nodes[7], nodes[8], -1 * factor);
-    map.addConnection(nodes[4], nodes[9], -2 * factor);
-    map.addConnection(nodes[9], nodes[10], -1 * factor);
-    map.addConnection(nodes[10], nodes[14], -4 * factor);
-    map.addConnection(nodes[2], nodes[11], -2 * factor);
-    map.addConnection(nodes[11], nodes[12], -1 * factor);
-    map.addConnection(nodes[12], nodes[13], -2 * factor);
-    map.addConnection(nodes[13], nodes[14], -5 * factor);
-    map.addConnection(nodes[14], nodes[15], -2 * factor);
-    map.addConnection(nodes[15], nodes[16], -1 * factor);
-    map.addConnection(nodes[11], nodes[17], -3 * factor);
-    map.addConnection(nodes[17], nodes[13], -3 * factor);
-    map.addConnection(nodes[13], nodes[18], -5 * factor);
-    map.addConnection(nodes[18], nodes[19], -1 * factor);
-    map.addConnection(nodes[19], nodes[10], -2 * factor);
-    
-    //Then qlearning.
-    Qlearning qTest(&map);
-
-    std::vector<float> rewards = {7,10,1,0,7,5,0,0,15,10,5,7,3,1,7,15,0,8,4,10};
-
-    int startNode = 13;
-    float alpha = 0.1;
-    float gamma = 0.9;
-    int maxSteps = 25;
-    int maxReward = 85;
-    int totalSteps = TOTALEPISODES;
-    int randomOff = 1000;
-    int greed = 1;
-
-    std::array<std::vector<float>, RUNS> rew;
-    std::array<std::vector<float>, RUNS> cost;
-    std::array<std::vector<float>, RUNS> steps;
-    std::array<std::vector<std::vector<int>>, RUNS> routes;
-    results testResult;
-
-    for (int i = 0; i < RUNS; i++) {
-        testResult = qTest.run(
-            rewards,
-            startNode,
-            alpha,
-            gamma,
-            greed,
-            maxSteps,
-            maxReward,
-            totalSteps,
-            randomOff);
-
-        for (auto& r : testResult.reward)
-            rew[i].push_back(r);
-        for (auto& c : testResult.cost)
-            cost[i].push_back(c);
-        for (auto& s : testResult.steps)
-            steps[i].push_back(s);
-        routes[i] = testResult.routes;
-
-        greed += 5;
-    }
-        printToFile(rew, cost, steps, routes);
-}
-*/
-void testGraph3() {
+void testGraph() {
     Graph map;
     
     std::ifstream file1("roomWeights.txt");
@@ -286,7 +179,7 @@ int main() {
     specs << EXPLOREEPISODES << "," << DISPLAYEPISODES << "," << PRINTEPISODES;
     specs.close();
 
-    testGraph3();
+    testGraph();
 
     return 0;
 }
